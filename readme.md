@@ -18,25 +18,25 @@ Thisdocument attempts to provide customers of Azure Data Lake (ADLS) and Azure D
 
 
 
-Contents
+# Contents
 
-Introduction        3
+Introduction
 
-Pattern 1. Access via Service Principal        4
+Pattern 1. Access via Service Principal
 
-Pattern 2. Multiple workspaces — permission by workspace        6
+Pattern 2. Multiple workspaces — permission by workspace
 
-Pattern 3 — AAD Credential passthrough        7
+Pattern 3 — AAD Credential passthrough
 
-Pattern 4. Cluster scoped Service principal        9
+Pattern 4. Cluster scoped Service principal
 
-Pattern 5. Session scoped Service principal        11
+Pattern 5. Session scoped Service principal
 
-Pattern 6. Databricks Table Access Control        15
+Pattern 6. Databricks Table Access Control
 
-Conclusion        16
+Conclusion
 
-License/Terms of Use        17
+License/Terms of Use
 
 
 
