@@ -28,9 +28,9 @@ Pattern 2. Multiple workspaces — permission by workspace
 
 Pattern 3 — AAD Credential passthrough
 
-Pattern 4. Cluster scoped Service principal
+Pattern 4. Cluster scoped Service Principal
 
-Pattern 5. Session scoped Service principal
+Pattern 5. Session scoped Service Principal
 
 Pattern 6. Databricks Table Access Control
 
