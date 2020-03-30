@@ -2,7 +2,7 @@
 
 **Summary:**
 
-This document attempts to provide customers of Azure Data Lake (ADLS) and Azure Databricks with an introduction of the common approaches in which data can be accessed and secured in ADLS from Databricks.
+This document described the common approaches in which data can be secured in Azure Data Lake Storage Gen2 (ADLS) from Databricks users jobs.
 
 **Versions:**
 
@@ -11,8 +11,6 @@ This document attempts to provide customers of Azure Data Lake (ADLS) and Azure 
 | Nicholas Hurt | Microsoft Cloud Solution Architect – Data &amp; AI | Original | 20 Jan 2020 |
 |   |   |   |   |
 |   |   |   |   |
-
-** **
 
 # Contents
 
