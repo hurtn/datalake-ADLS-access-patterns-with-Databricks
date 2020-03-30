@@ -415,3 +415,50 @@ write is triggered.
 *This means a single service principal will need to encapsulate the
 permissions of a single pipeline execution rather than a single service
 principal per data asset.
+
+## Pattern 6. Databricks Table Access Control
+
+
+One final pattern, which not technically an access pattern to ADLS,
+implements security at the table (or view) level rather than the data
+lake level. This method is native to Databricks and involves granting,
+denying, revoking access to tables or views which may have been created
+from files residing in ADLS. Access is granted programmatically (from
+Python or SQL) to tables or views based on user/group. This approach
+requires [both cluster and table access
+control](https://docs.microsoft.com/en-gb/azure/databricks/administration-guide/access-control/table-acls/table-acl#enable-table-access-control-at-the-account-level)
+to be enabled and requires a [premium tier
+workspace](https://databricks.com/product/azure-pricing).
+File access is disabled through a [cluster level
+configuration](https://docs.microsoft.com/en-gb/azure/databricks/administration-guide/access-control/table-acls/table-acl#sql-only-table-access-control)
+which ensures the only method of data access for users is via the
+pre-configured tables or views. This works well for analytical (BI)
+tools accessing tables/views via odbc but limits users in their ability
+to access files directly and does not support R and Scala.
+
+## Conclusion
+
+This white paper has examined a number of access patterns to Azure Data
+Lake gen2 available from Azure Databricks. There are merits and
+disadvantages of each, and most likely it will be a combination of these
+patterns which will suit a production scenario. Below is a table
+summarising the above access patterns and some important considerations
+of each.
+
+![Comparison of options](media/Comparison.png)
+
+## License/Terms of Use
+
+This is a free white paper released into the public domain.
+
+Anyone is free to use or distribute this white paper, for any purpose,
+commercial or non-commercial, and by any means.
+
+THE WHITE PAPER IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE WHITE PAPER.
+
