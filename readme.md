@@ -28,9 +28,9 @@ This document described the common approaches in which data can be secured in Az
 
 [Pattern 6 - Databricks Table Access Control](#Pattern-6---Databricks-Table-Access-Control)
 
-[Conclusion](Conclusion)
+[Conclusion](#Conclusion)
 
-[License/Terms of Use](License/Terms-of-Use)
+[License/Terms of Use](#License/Terms-of-Use)
 
 
 ## Introduction
@@ -234,7 +234,7 @@ cluster](https://docs.microsoft.com/en-us/azure/databricks/administration-guide/
 using the "can attach to" permission, it will ensure that access to the
 data lake is restricted by the ACLs assigned to the service principal.
 
-![Cluster Scoped Service Principal](media/ClusterScopedServicePrincipal)
+![Cluster Scoped Service Principal](media/ClusterScopedServicePrincipal.png)
 
 This pattern will allow you to use multiple clusters in the same
 workspace, and "attach" a set of permissions according to the service
@@ -339,7 +339,7 @@ required in order to assign granular permissions to the secret scope.
 To help explain this pattern further, and the setup required, examine
 the following simple scenario:
 
-![Session Scoped Service Principal](media/SessionScopedServicePrincipal)
+![Session Scoped Service Principal](media/SessionScopedServicePrincipal.png)
 
 The above diagram depicts a single folder (A) with two sets of
 permissions, readers and writers. AAD groups reflect these roles and
@@ -396,7 +396,7 @@ granularity (2):
     the "Service Principal for Dataset C" which was added to the Readers
     C group only.
 
-![Access To Multiple Dataset](media/AccessToMultipleDataset)
+![Access To Multiple Dataset](media/AccessToMultipleDataset.png)
 
 It may seem more logical to have one service principal per data asset
 but when multiple permissions are required for a single pipeline to
