@@ -16,24 +16,23 @@ This document attempts to provide customers of Azure Data Lake (ADLS) and Azure 
 
 # Contents
 
-Introduction
+[Introduction](#Introduction)
 
-[Pattern 1. Access via Service Principal](#Pattern-1\.-Access-via-Service-Principal)
+[Pattern 1 - Access via Service Principal](#Pattern---Access-via-Service-Principal)
 
-Pattern 2. Multiple workspaces — permission by workspace
+[Pattern 2 - Multiple workspaces — permission by workspace](Pattern-2---Multiple-workspaces-—-permission-by-workspace)
 
-Pattern 3 — AAD Credential passthrough
+[Pattern 3 - AAD Credential passthrough](Pattern-3---AAD-Credential-passthrough)
 
-Pattern 4. Cluster scoped Service Principal
+[Pattern 4 - Cluster scoped Service Principal](Pattern-4---Cluster-scoped-Service-Principal)
 
-Pattern 5. Session scoped Service Principal
+[Pattern 5 - Session scoped Service Principal](Pattern-5---Session-scoped-Service-Principal)
 
-Pattern 6. Databricks Table Access Control
+[Pattern 6 - Databricks Table Access Control](Pattern-6---Databricks-Table-Access-Control)
 
-Conclusion
+[Conclusion](Conclusion)
 
-License/Terms of Use
-
+[License/Terms of Use](License/Terms-of-Use)
 
 
 # Introduction
@@ -46,7 +45,7 @@ By way of a simple example a data lake may require two sets of permissions. Engi
 
 For clarity and brevity ADLS in the context of this paper can be considered a v2 storage account with Hierarchical Namespace (HNS) enabled.
 
-## Pattern 1\. Access via Service Principal
+## Pattern 1 - Access via Service Principal
 
 To provide a group of users access to a particular folder (and it's
 contents) in ADLS, the simplest mechanism is to create a [mount point
@@ -129,8 +128,7 @@ patterns may be followed to achieve the required level of
 granularity.
 
 
-Pattern 2. Multiple workspaces --- permission by workspace
-==========================================================
+##Pattern 2. Multiple workspaces --- permission by workspace
 
 This is an extension of the first pattern whereby multiple workspaces
 are provisioned, and different groups of users are assigned to different
@@ -157,3 +155,4 @@ workspaces --- n groups = n workspaces. The workspace itself does not
 incur cost, but there may be an inherit increase in total cost of
 ownership. If more granular security is required than workspace level then
 one of the following patterns may be more suitable.
+
