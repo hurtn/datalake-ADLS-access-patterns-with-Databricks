@@ -16,17 +16,17 @@ This document described the common approaches in which data can be secured in Az
 
 [Introduction](#Introduction)
 
-[Pattern 1 - Access via Service Principal](#Pattern---Access-via-Service-Principal)
+[Pattern 1 - Access via Service Principal](#Pattern-1---Access-via-Service-Principal)
 
-[Pattern 2 - Multiple workspaces — permission by workspace](Pattern-2---Multiple-workspaces-—-permission-by-workspace)
+[Pattern 2 - Multiple workspaces — permission by workspace](#Pattern-2---Multiple-workspaces-—-permission-by-workspace)
 
-[Pattern 3 - AAD Credential passthrough](Pattern-3---AAD-Credential-passthrough)
+[Pattern 3 - AAD Credential passthrough](#Pattern-3---AAD-Credential-passthrough)
 
-[Pattern 4 - Cluster scoped Service Principal](Pattern-4---Cluster-scoped-Service-Principal)
+[Pattern 4 - Cluster scoped Service Principal](#Pattern-4---Cluster-scoped-Service-Principal)
 
-[Pattern 5 - Session scoped Service Principal](Pattern-5---Session-scoped-Service-Principal)
+[Pattern 5 - Session scoped Service Principal](#Pattern-5---Session-scoped-Service-Principal)
 
-[Pattern 6 - Databricks Table Access Control](Pattern-6---Databricks-Table-Access-Control)
+[Pattern 6 - Databricks Table Access Control](#Pattern-6---Databricks-Table-Access-Control)
 
 [Conclusion](Conclusion)
 
