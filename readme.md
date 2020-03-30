@@ -18,7 +18,7 @@ This document attempts to provide customers of Azure Data Lake (ADLS) and Azure 
 
 Introduction
 
-[Pattern 1. Access via Service Principal](#Pattern-1-Access-via-Service-Principal)
+[Pattern 1. Access via Service Principal](#Pattern-1\.-Access-via-Service-Principal)
 
 Pattern 2. Multiple workspaces — permission by workspace
 
@@ -46,7 +46,7 @@ By way of a simple example a data lake may require two sets of permissions. Engi
 
 For clarity and brevity ADLS in the context of this paper can be considered a v2 storage account with Hierarchical Namespace (HNS) enabled.
 
-## Pattern 1 Access via Service Principal
+## Pattern 1. Access via Service Principal
 
 To provide a group of users access to a particular folder (and it's
 contents) in ADLS, the simplest mechanism is to create a [mount point
