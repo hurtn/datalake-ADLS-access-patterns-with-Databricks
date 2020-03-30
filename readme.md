@@ -90,17 +90,16 @@ the workspace can be done via the
 \>databricks configure --- token
 
 Databricks Host (should begin with ):
-[[https://eastus.azuredatabricks.net/?o=\#]{.underline}](https://nam06.safelinks.protection.outlook.com/?url=https%3A%2F%2Feastus.azuredatabricks.net%2F%3Fo%3D2614643005307751&data=02%7C01%7CNick.Hurt%40microsoft.com%7C2b8eb8d700c941faea2f08d79cc3869b%7C72f988bf86f141af91ab2d7cd011db47%7C1%7C0%7C637150235898192321&sdata=0J%2BFUffNOEIBZWa2VGUqGcX1Z958nuN1r0wRM2xn0HY%3D&reserved=0)\#\#\#\#\#\#\#\#Token:
+https://eastus.azuredatabricks.net/?o=\#\#\#\#\#\#\#\#\#Token:
 dapi\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\
 \>databricks fs ls dbfs:/mnt
 
 datalake
 ```
+
 From an architecture perspective these are the basic components where
 "dl" is used to represent the mount name.
-
-![](media/image1.png){width="6.268055555555556in"
-height="3.4347222222222222in"}
+![Access via Service Principal](media/AccessViaSP.png)
 
 *Note the use of default ACLs otherwise any new folders created will be
 inaccessible*
@@ -115,6 +114,17 @@ the code snippet below.
 To access data directly using service principal, authorisation code must
 be executed in the same session prior to reading/writing the data for
 example:
+```scala
+# authenticate using a service principal and OAuth 2.0
+spark.conf.set("fs.azure.account.auth.type", "OAuth")
+spark.conf.set("fs.azure.account.oauth.provider.type", "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider")
+spark.conf.set("fs.azure.account.oauth2.client.id", "enter-your-service-principal-application-id-here")
+spark.conf.set("fs.azure.account.oauth2.client.secret", dbutils.secrets.get(scope = "secret-scope-name", key = "secret-name"))
+spark.conf.set("fs.azure.account.oauth2.client.endpoint", "https://login.microsoftonline.com//enter-your-tenant-id-here/oauth2/token")
+
+# read data in delta format
+readdf=spark.read.format("delta").load(abfs://file-system-name@storage-account-name.dfs.core.windows.net/path-to-data")
+```
 
 Using a single service principal to authenticate users to a single
 location in the lake is unlikely to satisfy most security requirements
@@ -122,5 +132,34 @@ location in the lake is unlikely to satisfy most security requirements
 not facilitate securing access to multiple groups of users of the lake
 who require different sets of permissions. One or more the following
 patterns may be followed to achieve the required level of
-granularity`
+granularity.
 
+
+Pattern 2. Multiple workspaces --- permission by workspace
+==========================================================
+
+This is an extension of the first pattern whereby multiple workspaces
+are provisioned, and different groups of users are assigned to different
+workspaces. Each group/workspace will use a different service principal
+to govern the level of access required, either via a configured mount
+point or direct path. Conceptually, this is a mapping of service
+principal to each group of users, and each service principal will have a
+defined set of permissions on the lake. In order to assign users to a
+workspace simply ensure they are registered in your Azure Active
+Directory (AAD) and an admin (those with [contributor or owner role on
+the
+workspace](https://docs.microsoft.com/en-us/azure/databricks/administration-guide/account-settings/account#assign-initial-account-admins)
+will need to [add
+users](https://docs.microsoft.com/en-us/azure/databricks/administration-guide/users-groups/users#--add-a-user)
+(with the same identity as in AAD) to the appropriate workspace. The
+architecture below depicts two different folders and two groups of users
+(readers and writers) on each.
+
+![Permission by Workspace](media/PermissionByWorkspace.png)
+
+This pattern may offer excellent isolation at a workspace level however
+the main disadvantage to this approach is the proliferation of
+workspaces --- n groups = n workspaces. The workspace itself does not
+incur cost, but there may be an inherit increase in total cost of
+ownership. If more granular security is required than workspace level then
+one of the following patterns may be more suitable.
