@@ -51,3 +51,14 @@ By way of a simple example a data lake may require two sets of permissions. Engi
 For clarity and brevity ADLS in the context of this paper can be considered a v2 storage account with Hierarchical Namespace (HNS) enabled.
 
 #
+```scala
+configs = {"fs.azure.account.auth.type": "OAuth",
+           "fs.azure.account.oauth.provider.type": "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider",
+           "fs.azure.account.oauth2.client.id": "enter-your-service-principal-application-id-here",
+           "fs.azure.account.oauth2.client.secret": dbutils.secrets.get(scope = "enter-your-key-vault-secret-scope-name-here", key = "enter-the-secret"),
+           "fs.azure.account.oauth2.client.endpoint": "https://login.microsoftonline.com/enter-your-tenant-id-here/oauth2/token"}
+
+dbutils.fs.mount(
+  source = "abfss://file-system-name@storage-account-name.dfs.core.windows.net/folder-path-here",
+  mount_point = "/mnt/mount-name",
+    ```
