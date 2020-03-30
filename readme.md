@@ -128,7 +128,7 @@ patterns may be followed to achieve the required level of
 granularity.
 
 
-##Pattern 2. Multiple workspaces --- permission by workspace
+## Pattern 2. Multiple workspaces --- permission by workspace
 
 This is an extension of the first pattern whereby multiple workspaces
 are provisioned, and different groups of users are assigned to different
@@ -155,4 +155,78 @@ workspaces --- n groups = n workspaces. The workspace itself does not
 incur cost, but there may be an inherit increase in total cost of
 ownership. If more granular security is required than workspace level then
 one of the following patterns may be more suitable.
+
+## Pattern 3 --- AAD Credential passthrough
+AAD passthrough allows different groups of users to all work in the same
+workspace and access data either via mount point or direct path
+authenticated using their own credentials. The user's credentials are
+passed through to ADLS gen2 and evaluated against the files and folder
+ACLs. This feature is enabled at the cluster level under the advanced
+options.
+
+To [mount an ADLS filesystem or folder with AAD passthrough
+enabled](https://docs.microsoft.com/en-us/azure/databricks/data/data-sources/azure/adls-passthrough#azure-data-lake-storage-gen2-1)
+the following Scala may be used:
+```scala
+val configs = Map("fs.azure.account.auth.type" -> "CustomAccessToken",  "fs.azure.account.custom.token.provider.class" -> spark.conf.get("spark.databricks.passthrough.adls.gen2.tokenProviderClassName"))
+
+// Optionally, you can add <directory-name> to the source URI of your mount point.
+dbutils.fs.mount(
+  source = "abfss://file-system-name@storage-account-name.dfs.core.windows.net/folder-path-here",
+  mountPoint = "/mnt/mount-name",
+  extraConfigs = configs)
+```
+Any user reading or writing via the mount point will have their
+credentials evaluated. Alternatively, to access data directly without a
+mount point simply use the abfs path on a cluster with AAD Passthrough
+enabled, for example:
+```scala
+# read data in delta format using direct path
+readdf = spark.read
+.format("<file format>")
+.load("abfss://<filesys>@<storageacc>.dfs.core.windows.net/<path>")
+```
+Originally this functionality was only available using [high
+concurrency
+clusters](https://docs.microsoft.com/en-gb/azure/databricks/data/data-sources/azure/adls-passthrough#enable-azure-data-lake-storage-credential-passthrough-for-a-high-concurrency-cluster)
+and supported only Python and SQL notebooks, but recently [standard
+clusters support for AAD
+passthrough](https://docs.microsoft.com/en-gb/azure/databricks/data/data-sources/azure/adls-passthrough#--enable-azure-data-lake-storage-credential-passthrough-for-a-standard-cluster)
+using R and Scala notebooks were announced. One major consideration
+however for standard clusters, is that only [a single user can be
+enabled per
+cluster](https://docs.microsoft.com/en-us/azure/databricks/data/data-sources/azure/adls-passthrough#single-user).
+
+![Single User Access](media/SingleUserAccess.png)
+
+A subtle but important difference in this pattern is that service
+principals are not required to delegate access, as it is the user's
+credentials that are used.
+
+![AAD Credential Passthrough](media/AADCredPassthru.png)
+
+*Access can still be either direct path or mount point*
+
+There are some [[further
+considerations]{.underline}](https://docs.microsoft.com/en-gb/azure/databricks/data/data-sources/azure/adls-passthrough#known-limitations)
+to note at the time of writing:
+
+-   The [[minimum runtime
+    versions]{.underline}](https://docs.microsoft.com/en-gb/azure/databricks/data/data-sources/azure/adls-passthrough#supported-features)
+    as well as which PySpark ML APIs which are not supported, and
+    associated supported features
+
+-   **Databricks Connect is not supported**
+
+-   **[Jobs](https://docs.microsoft.com/en-gb/azure/databricks/jobs#jobs)**
+    are not supported
+
+-   jdbc/odbc (BI tools) is not yet supported
+
+If any of these limitations present a challenge or there is a
+requirement to enable more than one Scala or R developer to work on a
+cluster at the same time, then you may need to consider one of the other
+patterns below.
+
+
 
