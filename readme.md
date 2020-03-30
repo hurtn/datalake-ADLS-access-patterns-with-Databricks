@@ -18,7 +18,7 @@ This document described the common approaches in which data can be secured in Az
 
 [Pattern 1 - Access via Service Principal](#Pattern-1---Access-via-Service-Principal)
 
-[Pattern 2 - Multiple workspaces — permission by workspace](#Pattern-2---Multiple-workspaces-—-permission-by-workspace)
+[Pattern 2 - Multiple workspaces — permission by workspace](#Pattern-2---Multiple-workspaces---permission-by-workspace)
 
 [Pattern 3 - AAD Credential passthrough](#Pattern-3---AAD-Credential-passthrough)
 
@@ -126,7 +126,7 @@ patterns may be followed to achieve the required level of
 granularity.
 
 
-## Pattern 2. Multiple workspaces --- permission by workspace
+## Pattern 2 - Multiple workspaces --- permission by workspace
 
 This is an extension of the first pattern whereby multiple workspaces
 are provisioned, and different groups of users are assigned to different
@@ -154,7 +154,7 @@ incur cost, but there may be an inherit increase in total cost of
 ownership. If more granular security is required than workspace level then
 one of the following patterns may be more suitable.
 
-## Pattern 3 --- AAD Credential passthrough
+## Pattern 3 - AAD Credential passthrough
 AAD passthrough allows different groups of users to all work in the same
 workspace and access data either via mount point or direct path
 authenticated using their own credentials. The user's credentials are
@@ -226,7 +226,7 @@ requirement to enable more than one Scala or R developer to work on a
 cluster at the same time, then you may need to consider one of the other
 patterns below.
 
-## Pattern 4. Cluster scoped Service principal
+## Pattern 4 - Cluster scoped Service principal
 
 In this pattern, each cluster is "mapped" to a unique service principal.
 By [restricting users or groups to a particular
@@ -286,7 +286,7 @@ could result in a proliferation of clusters. The next pattern may
 overcome this challenge but will require each user to execute
 authentication code at run time.
 
-## Pattern 5. Session scoped Service principal
+## Pattern 5 - Session scoped Service principal
 
 In this pattern, access control is governed at the session level so a
 cluster may be shared by multiple groups of users, each using a set of
@@ -414,7 +414,7 @@ write is triggered.
 permissions of a single pipeline execution rather than a single service
 principal per data asset.
 
-## Pattern 6. Databricks Table Access Control
+## Pattern 6 - Databricks Table Access Control
 
 
 One final pattern, which not technically an access pattern to ADLS,
