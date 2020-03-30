@@ -35,7 +35,7 @@ This document attempts to provide customers of Azure Data Lake (ADLS) and Azure 
 [License/Terms of Use](License/Terms-of-Use)
 
 
-# Introduction
+## Introduction
 
 There are a number of ways to configure access to Azure Data Lake Storage gen2 (ADLS) from Azure Databricks (ADB). This document attempts to cover the common patterns, advantages and disadvantages of each, and the scenarios in which they would be most appropriate.
 
@@ -205,7 +205,7 @@ credentials that are used.
 
 ![AAD Credential Passthrough](media/AADCredPassthru.png)
 
-*Access can still be either direct path or mount point*
+*Note: Access can still be either direct path or mount point*
 
 There are some [[further
 considerations]{.underline}](https://docs.microsoft.com/en-gb/azure/databricks/data/data-sources/azure/adls-passthrough#known-limitations)
@@ -228,5 +228,190 @@ requirement to enable more than one Scala or R developer to work on a
 cluster at the same time, then you may need to consider one of the other
 patterns below.
 
+## Pattern 4. Cluster scoped Service principal
 
+In this pattern, each cluster is "mapped" to a unique service principal.
+By [restricting users or groups to a particular
+cluster](https://docs.microsoft.com/en-us/azure/databricks/administration-guide/access-control/cluster-acl#--configure-cluster-level-permissions),
+using the "can attach to" permission, it will ensure that access to the
+data lake is restricted by the ACLs assigned to the service principal.
 
+![Cluster Scoped Service Principal](media/ClusterScopedServicePrincipal)
+
+This pattern will allow you to use multiple clusters in the same
+workspace, and "attach" a set of permissions according to the service
+principal set in the [cluster
+config](https://docs.microsoft.com/en-gb/azure/databricks/clusters/configure?toc=https%3A%2F%2Fdocs.microsoft.com%2Fen-gb%2Fazure%2Fazure-databricks%2FTOC.json&bc=https%3A%2F%2Fdocs.microsoft.com%2Fen-gb%2Fazure%2Fbread%2Ftoc.json):
+```Scala
+fs.azure.account.auth.type OAuth
+fs.azure.account.oauth.provider.type org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider
+fs.azure.account.oauth2.client.id <service-principal-application-id>
+fs.azure.account.oauth2.client.secret {{secrets/<your scope name>/<secret name>}}
+fs.azure.account.oauth2.client.endpoint https://login.microsoftonline.com/<tenant id>/oauth2/token
+```
+
+*Note the method in which secrets are referenced in the config section
+as it is different from the usual dbutils syntax*
+
+The benefit of this approach is that the scope and secret names are not
+exposed to end-users and they do not require read access to the secret
+scope however the creator of the cluster will.
+
+Users should use the direct access method, via ABFS, and mount points
+should be forbidden, unless of course there is a global folder everyone
+in the workspace needs access to. Until there is an in-built way to
+prevent mount points being created, you may wish to write an alert
+utility which runs frequently checking for any mount points using the
+CLI (as shown in the first pattern) and sends a notification if any
+unauthorised mount points are detected.
+
+This pattern could be useful when both engineers and analysts require
+different sets of permissions and assigned to the same workspace. The
+engineers may need read access to one or more source data sets and then
+write access to a target location, with read-write access to a staging
+or working location. This requires a single service principal to have
+access to all the data sets in order for the code to execute fully ---
+more about this in the next pattern. The analysts however may need read
+access to the target folder and nothing else.
+
+The disadvantage of this approach is dedicated clusters for each
+permission group, i.e. no sharing of clusters across permission groups.
+In other words, each service principal, and therefore each cluster,
+should have sufficient permissions in the lake to run the desired
+workload on that cluster. The reason for this is that a cluster can only
+be configured with a single service principal at a time. In a production
+scenario the config should be specified through scripting the
+provisioning of clusters using the CLI or API.
+
+Depending on the number of permission groups required, this pattern
+could result in a proliferation of clusters. The next pattern may
+overcome this challenge but will require each user to execute
+authentication code at run time.
+
+## Pattern 5. Session scoped Service principal
+
+In this pattern, access control is governed at the session level so a
+cluster may be shared by multiple groups of users, each using a set of
+service principal credentials. *Normally, clusters with a number of
+concurrent users and jobs will require a [high
+concurrency](https://docs.microsoft.com/en-gb/azure/databricks/clusters/configure#--high-concurrency-clusters)
+cluster to ensure resources are shared fairly.* The user attempting to
+access ADLS will need to use the direct access method and execute the
+OAuth code prior to accessing the required folder. Consequently, this
+approach will not work when using odbc/jdbc connections. Also note, that
+**only one service principal can be set in session at a time** and this
+will have a significant influence the design based on Spark's lazy
+evaluation, as described later. Below is sample OAuth code, which is
+very similar to the code used in pattern 1 above:
+```Scala
+# authenticate using a service principal and OAuth 2.0
+spark.conf.set("fs.azure.account.auth.type", "OAuth")
+spark.conf.set("fs.azure.account.oauth.provider.type", "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider")
+spark.conf.set("fs.azure.account.oauth2.client.id", "enter-your-service-principal-application-id-here")
+spark.conf.set("fs.azure.account.oauth2.client.secret", dbutils.secrets.get(scope = "secret-scope-name", key = "secret-name"))
+spark.conf.set("fs.azure.account.oauth2.client.endpoint", "https://login.microsoftonline.com//enter-your-tenant-id-here/oauth2/token")
+
+# read data in delta format
+readdf=spark.read.format("delta").load(abfs://file-system-name@storage-account-name.dfs.core.windows.net/path-to-data")
+```
+This pattern works well where different permission groups (such as
+analysts and engineers) are required but one does not wish to take on
+the administrative burden of isolating the user groups by cluster. *As
+in the previous approach, mounting folders using the provided service
+principal/secret scope details should be forbidden.*
+
+The mechanism which ensures that each group has the appropriate level of
+access is through their ability to "use" a service principal which has
+been added to the AAD group with the desired level of access. The way to
+effectively "map" the user group's level of access to a particular
+service principal is by granting the Databricks user group access to the
+secret scope (see below) which stores the credentials for that service
+principal. Armed with the secret scope name and the associated key
+name(s), users can then run the authorisation code shown above. The
+"client.secret" (service principal's secret) is stored as a secret in
+the secret scope but so to can any other sensitive details such as the
+service principals application ID and tenant ID.
+
+The disadvantage to this approach is the **proliferation of secret
+scopes of which there is a limit of 100 per workspace**. Additionally
+the [premium
+plan](https://databricks.com/product/azure-pricing) is
+required in order to assign granular permissions to the secret scope.
+
+To help explain this pattern further, and the setup required, examine
+the following simple scenario:
+
+![Session Scoped Service Principal](media/SessionScopedServicePrincipal)
+
+The above diagram depicts a single folder (A) with two sets of
+permissions, readers and writers. AAD groups reflect these roles and
+have been assigned appropriate folder ACLs. Each AAD group contains a
+service principal and the credentials for each service principal have
+been stored in a unique secret scope. Each
+[group](https://docs.microsoft.com/en-us/azure/databricks/administration-guide/users-groups/groups)
+in the Databricks workspace contains the appropriate users, and the
+group has been [assigned READ
+ACLs](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/cli/secrets-cli)
+on the associated secret scope, which allows a group of users to "use"
+the service principal mapped to their level of permission.
+
+Below is an example CLI command of how to grant read permissions to the
+"GrWritersA" Databricks group on "SsWritersA" secret scope. Note that
+ACLs are at secret scope level, not at secret level which means that one
+secret scope will be required per service principal.
+```CLI
+databricks secrets put-acl --scope SsWritersA --principal GrWritersA --permission READ
+databricks secrets get-acl --scope SsWritersA --principal GrWritersA
+Principal Permission
+ — — — — — — — — — — — — 
+GrWritersA READ
+```
+How this is may be implemented for your data lake scenario requires
+careful thought and planning. In very general terms this pattern being
+applied in one of two ways, at folder granularity, representing a
+department or data lake zone (1) or at data project or "data module"
+granularity (2):
+
+1.  Analysts (read-only) and engineers (read-write) are working within a
+    single folder structure, and they do not require access to
+    additional datasets outside of their current directory. The diagram
+    below depicts two folders A and B, perhaps representing two
+    departments. Each department has their own analysts and engineers
+    working on their data, and should not be allowed access to the other
+    department's data.
+
+![Access To Single Dataset](media/AccessToSingleDataset.png)
+
+2.  Using the diagram below for reference, engineers and analysts are
+    working on different projects and should have clear separation of
+    concerns. Engineers working on "Module 1" require read access to
+    multiple source data assets (A & B). Transformations and joins are
+    run to produce another data asset ( C ). Engineers also require a
+    working or staging directory to persisting output during various
+    stages (X). For the entire pipeline to execute, "Service Principal
+    for Module 1 Developers" has been added to the relevant AAD groups
+    which provide access to all necessary folders (A, B, X, C) through
+    the assigned ACLs.
+
+    Analysts need to produce analytics using the new data asset ( C )
+    but should not have access to the source data, therefore, they use
+    the "Service Principal for Dataset C" which was added to the Readers
+    C group only.
+
+![Access To Multiple Dataset](media/AccessToMultipleDataset)
+
+It may seem more logical to have one service principal per data asset
+but when multiple permissions are required for a single pipeline to
+execute in Spark, then one needs to consider how [lazy
+evaluation](https://data-flair.training/blogs/apache-spark-lazy-evaluation/)
+works. When attempting to use multiple service principals in the same
+notebook/session one needs to remember that the read and write will be
+executed only once the write is triggered. One cannot therefore set the
+authentication to one service principal for one folder and then to
+another prior to the final write operation, all in the same
+notebook/session, as the read operation will be executed only when the
+write is triggered.
+
+*This means a single service principal will need to encapsulate the
+permissions of a single pipeline execution rather than a single service
+principal per data asset.
