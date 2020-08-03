@@ -9,7 +9,7 @@ This document described the common approaches in which data can be secured in Az
 | **Name** | **Title** | **Notes** | **Date** |
 | --- | --- | --- | --- |
 | Nicholas Hurt | Microsoft Cloud Solution Architect – Data &amp; AI | Original | 20 Jan 2020 |
-|   |   |   |   |
+| Nicholas Hurt | Microsoft Cloud Solution Architect – Data &amp; AI | Added section on securely accessing ADLS | 03 Aug 2020 |
 |   |   |   |   |
 
 # Contents
