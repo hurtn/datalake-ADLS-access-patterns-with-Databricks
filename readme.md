@@ -16,6 +16,8 @@ This document described the common approaches in which data can be secured in Az
 
 [Introduction](#Introduction)
 
+[Securely accessing ADLS](#Secure-access-to-storage) 
+
 [Pattern 1 - Access via Service Principal](#Pattern-1---Access-via-Service-Principal)
 
 [Pattern 2 - Multiple workspaces — permission by workspace](#Pattern-2---Multiple-workspaces---permission-by-workspace)
@@ -35,13 +37,47 @@ This document described the common approaches in which data can be secured in Az
 
 ## Introduction
 
-There are a number of ways to configure access to Azure Data Lake Storage gen2 (ADLS) from Azure Databricks (ADB). This document attempts to cover the common patterns, advantages and disadvantages of each, and the scenarios in which they would be most appropriate. For clarity and brevity ADLS in the context of this paper can be considered a v2 storage account with Hierarchical Namespace (HNS) enabled.
+There are a number of considerations when configuring access to Azure Data Lake Storage gen2 (ADLS) from Azure Databricks (ADB). How will engineers and analysts access data in the lake securely from a workspace and how does one configure access control based on user permissions. This document will begin by briefly describing the two appraches to securing connectivity between the ADB workspace and ADLS, and then will cover the common patterns to implementing access control, the advantages and disadvantages of each, and the scenarios in which they would be most appropriate. For clarity and brevity ADLS in the context of this paper can be considered a v2 storage account with Hierarchical Namespace (HNS) enabled. 
 
-ADLS offers more granular security than RBAC through the use of access control lists (ACLs) which can be applied at folder or file level.  As per [best practice](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-best-practices#use-security-groups-versus-individual-users) these should be assigned to AAD groups rather than individual users or service principals. There are two main reasons for this; i.) changing ACLs can take time to propagate if there are 1000s of files, and ii.) there is a limit of 32 ACLs entries per file or folder.
+ADLS offers more granular security than RBAC through the use of access control lists (ACLs) which can be applied at folder or file level.  As per [best practice](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-best-practices#use-security-groups-versus-individual-users) these should be assigned to AAD groups rather than individual users or service principals. There are two main reasons for this; i.) changing ACLs can take time to propagate if there are 1000s of files, and ii.) there is a limit of 32 ACLs entries per file or folder. Understanding access control using RBAC and ACLs is outside the scope of this document but is covered [here](https://github.com/hurtn/datalake-on-ADLS/blob/master/Understanding%20access%20control%20and%20data%20lake%20configurations%20in%20ADLS%20Gen2.md)   
 
 By way of a simple example a data lake may require two sets of permissions. Engineers who run data pipelines and transformations requiring read-write access to a particular set of folders, and analysts who consume [read-only] curated analytics from another. Two AAD groups should be created to represent this division of responsibilities, and the required permissions for each group can be controlled through ACLs. Users should be assigned to the appropriate AAD group, and the group should then be assigned to the ACLs.  Please see [the documentation](https://docs.microsoft.com/en-gb/azure/storage/blobs/data-lake-storage-access-control#access-control-lists-on-files-and-directories) for further details. For automated jobs, a service principal which has been added to the appropriate group should be used, instead of an individual user identity. Service principal credentials should be kept extremely secure and referenced only though [secret scopes](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/secrets).
 
+## Securely accessing ADLS
 
+In Microsoft Azure there are two types of PaaS services. First one which are built using dedicated architecture, which means that cloud resources (compute, storage, network) are assigned from dedicated capacity and are assigned to dedicated instances for a particular customer and can be deployed within customer network i.e. Virtual Machine.
+Second type is the ones which are built using shared architecture, which means that cloud resources (compute, storage, network) are assigned from shared capacity to more than one instance for number of customers and cannot be deployed within customer network i.e. Storage.
+Azure Storage / ADLS gen2 is built using shared architecture and to access it securely from ADB there are two options available, [this blog](https://databricks.com/blog/2020/02/28/securely-accessing-azure-data-sources-from-azure-databricks.html#:~:text=%20Securely%20Accessing%20Azure%20Data%20Sources%20from%20Azure,available%20to%20access%20Azure%20data%20services...%20More%20) explains both approaches in detail:
+1. [Service Endpoings](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview#key-benefits)
+2. [Azure Private Link](https://docs.microsoft.com/en-us/azure/private-link/private-link-overview#key-benefits)
+
+Customers are using both approaches for securing the access between ADB and ADLS Gen2. For both approaches ADB must be [VNET injected](https://docs.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/vnet-inject). Service endpoints are relatively less complex to configure compared to Azure private link, however Azure Private link is more secure and is the recommended mechanism for connecting to ADLS G2 securely. It enables PaaS service to be accessed using private IPs and overcome limitations of service endpoint i.e. protection against data exfiltration by default. 
+
+Refer to this [article](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview#secure-azure-services-to-virtual-networks) for understanding how to configure service endpoints, and [this article](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?toc=%2fazure%2fstorage%2fblobs%2ftoc.json) on how to restrict the VNET where ADB is injected and firewall configurations. 
+As mentioned above this mechanism is more complex and requires number of configurations at the network and DNS level. The complex configuration part is around DNS name resolution for private endpoint. The following article explains number of DNS considerations when using Azure private link in detail. The approach we will discuss here is to use Azure Private DNS Zones to host the privatelink zone. The first recommended step is to have private endpoint integrated with Azure Private DNS Zone to host privatelink DNS zone of the respective service, in this case dfs.core.windows.net. When creating the Private Endpoint, there is an option to integrate it with Private DNS as shown below:
+
+![Private DNS Integration](media/PrivateDNSIntegration.png)
+           
+For simplicity we are discussing the private *DNS resolution for the private endpoint which is in the same VNET as the ADB. Following image explains the flow (for other scenarios where multiple VNETs are involved, using custom DNS or on-premises DNS is being used please refer to [this detailed article](https://github.com/dmauser/PrivateLink/tree/master/DNS-Integration-Scenarios))
+
+![Network Flow](media/NetworkFlow.png)
+*Make sure to validate the DNS resolution using PowerShell command Resolve-DNSName
+
+Regardless of the DNS resolution mechanism for ADB connectivity with private link enabled storage, the following can be used (remember to add the privatelink keyword):
+``` scala
+dbutils.fs.mount(
+  source = "abfss://file-system-name@storage-account-name.privatelink.dfs.core.windows.net/folder-path-here",
+  mountPoint = basePath,
+  extraConfigs = configs)
+```
+
+If you are using a proxy then your service principal authentication can fail. To avoid the error you can use the following environment variables  and specify your proxy URL:
+
+```
+http_url: Proxy FQDN, https_url: Proxy FQDN
+```
+
+In the next few sections we will discuss the various patterns to authenticate and access data lake storage from Azure Databricks.
 
 ## Pattern 1 - Access via Service Principal
 
