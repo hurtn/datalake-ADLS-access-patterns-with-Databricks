@@ -2,7 +2,7 @@
 
 **Summary:**
 
-This document described the common approaches in which data can be secured in Azure Data Lake Storage Gen2 (ADLS) from Databricks users jobs.
+This document provides guidance and approaches to securing access and connectivity to data in Azure Data Lake Storage Gen2 (ADLS) from Databricks.
 
 **Versions:**
 
@@ -16,7 +16,7 @@ This document described the common approaches in which data can be secured in Az
 
 [Introduction](#Introduction)
 
-[Securely accessing ADLS](#Secure-access-to-storage) 
+[Securing connectivity to ADLS](#Secure-access-to-storage) 
 
 [Pattern 1 - Access via Service Principal](#Pattern-1---Access-via-Service-Principal)
 
@@ -37,13 +37,13 @@ This document described the common approaches in which data can be secured in Az
 
 ## Introduction
 
-There are a number of considerations when configuring access to Azure Data Lake Storage gen2 (ADLS) from Azure Databricks (ADB). How will engineers and analysts access data in the lake securely from a workspace and how does one configure access control based on user permissions. This document will begin by briefly describing the two appraches to securing connectivity between the ADB workspace and ADLS, and then will cover the common patterns to implementing access control, the advantages and disadvantages of each, and the scenarios in which they would be most appropriate. For clarity and brevity ADLS in the context of this paper can be considered a v2 storage account with Hierarchical Namespace (HNS) enabled. 
+There are a number of considerations when configuring access to Azure Data Lake Storage gen2 (ADLS) from Azure Databricks (ADB). How will Databricks users connect to the lake securely and how does one configure access control based on their permissions. This document will begin by briefly describing the two appraches to securing connectivity between the ADB workspace and ADLS, and then will cover the common patterns to implementing access control, the advantages and disadvantages of each, and the scenarios in which they would be most appropriate. For clarity and brevity ADLS in the context of this paper can be considered a v2 storage account with Hierarchical Namespace (HNS) enabled. 
 
 ADLS offers more granular security than RBAC through the use of access control lists (ACLs) which can be applied at folder or file level.  As per [best practice](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-best-practices#use-security-groups-versus-individual-users) these should be assigned to AAD groups rather than individual users or service principals. There are two main reasons for this; i.) changing ACLs can take time to propagate if there are 1000s of files, and ii.) there is a limit of 32 ACLs entries per file or folder. Understanding access control using RBAC and ACLs is outside the scope of this document but is covered [here](https://github.com/hurtn/datalake-on-ADLS/blob/master/Understanding%20access%20control%20and%20data%20lake%20configurations%20in%20ADLS%20Gen2.md)   
 
 By way of a simple example a data lake may require two sets of permissions. Engineers who run data pipelines and transformations requiring read-write access to a particular set of folders, and analysts who consume [read-only] curated analytics from another. Two AAD groups should be created to represent this division of responsibilities, and the required permissions for each group can be controlled through ACLs. Users should be assigned to the appropriate AAD group, and the group should then be assigned to the ACLs.  Please see [the documentation](https://docs.microsoft.com/en-gb/azure/storage/blobs/data-lake-storage-access-control#access-control-lists-on-files-and-directories) for further details. For automated jobs, a service principal which has been added to the appropriate group should be used, instead of an individual user identity. Service principal credentials should be kept extremely secure and referenced only though [secret scopes](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/secrets).
 
-## Securely accessing ADLS
+## Securing connectivity to ADLS
 
 In Microsoft Azure there are two types of PaaS services. First one which are built using dedicated architecture, which means that cloud resources (compute, storage, network) are assigned from dedicated capacity and are assigned to dedicated instances for a particular customer and can be deployed within customer network i.e. Virtual Machine.
 Second type is the ones which are built using shared architecture, which means that cloud resources (compute, storage, network) are assigned from shared capacity to more than one instance for number of customers and cannot be deployed within customer network i.e. Storage.
@@ -77,7 +77,7 @@ If you are using a proxy then your service principal authentication can fail. To
 http_url: Proxy FQDN, https_url: Proxy FQDN
 ```
 
-In the next few sections we will discuss the various patterns to authenticate and access data lake storage from Azure Databricks.
+In the next few sections we will discuss the various approaches to authenticate and patterns to implement access control based on permissions.
 
 ## Pattern 1 - Access via Service Principal
 
