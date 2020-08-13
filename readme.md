@@ -41,7 +41,7 @@ There are a number of considerations when configuring access to Azure Data Lake 
 
 ADLS offers more granular security than RBAC through the use of access control lists (ACLs) which can be applied at folder or file level.  As per [best practice](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-best-practices#use-security-groups-versus-individual-users) these should be assigned to AAD groups rather than individual users or service principals. Additionally, nesting groups(groups within groups) can offer even more agility and flexibility as permissions evolve. There are two main reasons for this; i.) changing ACLs can take time to propagate if there are 1000s of files, and ii.) there is a limit of 32 ACLs entries per file or folder. Understanding access control using RBAC and ACLs is outside the scope of this document but is covered [here](https://github.com/hurtn/datalake-on-ADLS/blob/master/Understanding%20access%20control%20and%20data%20lake%20configurations%20in%20ADLS%20Gen2.md)   
 
-By way of a very simple example, a data lake may require two sets of permissions - engineers who run data pipelines and transformations requiring read-write access to a particular set of folders, and analysts who consume [read-only] curated analytics from another. At a minimum, two AAD security groups should be created to represent this division of responsibilities, namely a readers group and a writers group. Additional groups to represent the indivdual teams or business units could be nested inside these groups and the individuals added to their respective team group. The required permissions for the readers and writers groups to specific folders could be controlled using ACLs. Please see [the documentation](https://docs.microsoft.com/en-gb/azure/storage/blobs/data-lake-storage-access-control#access-control-lists-on-files-and-directories) for further details. For automated jobs, a service principal which has been added to the appropriate group should be used, instead of an individual user identity. Service principal credentials should be kept extremely secure and referenced only though [secret scopes](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/secrets).
+By way of a very simple example, a data lake may require two sets of permissions - engineers who run data pipelines and transformations requiring read-write access to a particular set of folders, and analysts who consume [read-only] curated analytics from another. At a minimum, two AAD security groups should be created to represent this division of responsibilities, namely a readers group and a writers group. Additional groups to represent the teams or business units could be nested inside these groups and the individuals added to their respective team group. The required permissions for the readers and writers groups to specific folders could be controlled using ACLs. Please see [the documentation](https://docs.microsoft.com/en-gb/azure/storage/blobs/data-lake-storage-access-control#access-control-lists-on-files-and-directories) for further details. For automated jobs, a service principal which has been added to the appropriate group should be used, instead of an individual user identity. Service principal credentials should be kept extremely secure and referenced only though [secret scopes](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/secrets).
 
 ## Securing connectivity to ADLS
 In Azure there are two types of PaaS service – those which are built using dedicated architecture, known as dedicated services, and those which are build using a shared architecture, known as shared services. Dedicated services use a mix of cloud resources (compute, storage, network) allocated from a pool, and are assigned to a dedicated instance of that service for a particular customer. These can be deployed within a customer virtual network, for example, a virtual machine. Shared services use a set of cloud resources which are assigned to more than one instance of a service, utilised by more than one customer, and therefore cannot be deployed within a single customer network e.g. storage. Depending on the type of service, a different [VNet integration pattern](https://github.com/fguerri/AzureVNetIntegrationPatterns) is applied to make it accessible only from clients deployed within Azure VNets and not accessible from the internet.
@@ -93,16 +93,16 @@ The following steps will enable Azure Databricks to connect privately and secure
   6. A mount can be created as normal using the same FQDN and it will connect privately to ADLS using private endpoints.
   
    ![ADB Mount](media/ADBMount.png)
-  
-   Note: You can deploy the private endpoint for storage within the same VNet where ADB is injected but it should be a different subnet i.e. it must not be deployed in the ADB private or public subnets.
+
+  If you are using a proxy then service principal authentication may fail. To avoid the error you can use the following environment variables  and specify your proxy URL:
+
+  ```
+  http_url: Proxy FQDN, https_url: Proxy FQDN
+  ```
+
+    Note: You can deploy the private endpoint for storage within the same VNet where ADB is injected but it should be a different subnet i.e. it must not be deployed in the ADB private or public subnets.
   
 There are [further steps](https://databricks.com/blog/2020/03/27/data-exfiltration-protection-with-azure-databricks.html) one can take to harden the Databricks control plane using an Azure Firewall if required.
-
-If you are using a proxy then your service principal authentication can fail. To avoid the error you can use the following environment variables  and specify your proxy URL:
-
-```
-http_url: Proxy FQDN, https_url: Proxy FQDN
-```
 
 In the next few sections we will discuss the various approaches to authenticate and patterns to implement access control based on permissions.
 
