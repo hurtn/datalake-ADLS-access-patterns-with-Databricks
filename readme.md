@@ -69,16 +69,19 @@ The following steps will enable Azure Databricks to connect privately and secure
   ![Private Endpoint](media/privateendpoint.png)
   
 4. When ADB and Storage private endpoints are deployed in their respective VNets, there are some additional steps that need to be performed:
-  a.The VNets should be [linked](https://docs.microsoft.com/en-us/azure/dns/private-dns-virtual-network-links) with the private DNS zone, as shown below (databricks-vnetpl and spkevnet-storage-pl):
+
+ a.The VNets should be [linked](https://docs.microsoft.com/en-us/azure/dns/private-dns-virtual-network-links) with the private DNS zone, as shown below (databricks-vnetpl and spkevnet-storage-pl):
 
    ![Vnet Linked](media/vnetlinked.png)
 
-   ![Network Flow](media/DNSFlow.png)
-
-  b. Also make sure both ADB and storage endpoint VNETs are [peered](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-peering-overview):
+ b. Also make sure both ADB and storage endpoint VNETs are [peered](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-peering-overview):
   
    ![VNet Peering](media/VNetPeering.png)
+   
+    The network configuration should now be as follows:
     
+   ![Network Flow](media/DNSFlow.png)
+       
   c. Make sure the storage firewall is enabled. As an optional step you can also add the ADB VNet (databricks-vnet) to communicate with this storage account. When you enable this, storage endpoints will also be enabled on the ADB Vnet (databricks-vnet). 
   
    ![VNet Peering](media/firewall.png)
