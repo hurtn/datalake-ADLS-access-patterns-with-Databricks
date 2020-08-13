@@ -47,7 +47,7 @@ By way of a very simple example, a data lake may require two sets of permissions
 In Azure there are two types of PaaS service – those which are built using dedicated architecture, known as dedicated services, and those which are build using a shared architecture, known as shared services. Dedicated services use a mix of cloud resources (compute, storage, network) allocated from a pool, and are assigned to a dedicated instance of that service for a particular customer. These can be deployed within a customer virtual network, for example, a virtual machine. Shared services use a set of cloud resources which are assigned to more than one instance of a service, utilised by more than one customer, and therefore cannot be deployed within a single customer network e.g. storage. Depending on the type of service, a different [VNet integration pattern](https://github.com/fguerri/AzureVNetIntegrationPatterns) is applied to make it accessible only from clients deployed within Azure VNets and not accessible from the internet.
 Azure Storage / ADLS gen2 is a shared service built using a shared architecture, and so to access it securely from Azure Databricks there are two options available. This Databricks [blog](https://databricks.com/blog/2020/02/28/securely-accessing-azure-data-sources-from-azure-databricks.html#:~:text=%20Securely%20Accessing%20Azure%20Data%20Sources%20from%20Azure,available%20to%20access%20Azure%20data%20services...%20More%20) summarises the following approaches:
 
-1. [Service Endpoings](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview#key-benefits)
+1. [Service Endpoints](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview#key-benefits)
 2. [Azure Private Link](https://docs.microsoft.com/en-us/azure/private-link/private-link-overview#key-benefits)
 
 Customers may use either approach for securing access between ADB and ADLS Gen2, but both require the ADB workspace to be [VNET injected](https://docs.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/vnet-inject). 
@@ -66,7 +66,7 @@ The following steps will enable Azure Databricks to connect privately and secure
 2. Create a [private storage account](https://docs.microsoft.com/en-us/azure/private-link/create-private-endpoint-storage-portal#create-your-private-endpoint) with a private endpoint and deploy it into the different VNet (i.e. create a new VNet named spokevnet-storage-pl beforehand)
 3. Ensure the [private endpoint is integrated with a private DNS zone](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-dns) to host the privatelink DNS zone of the respective service, in this case dfs.core.windows.net. When creating the Private Endpoint, there is an option to integrate it with Private DNS as shown below:
 
-  ![Private Endpoint](media/privateendpoint.png)
+  ![Private Endpoint](media/PrivateEndpoint2.png)
   
 4. When ADB and Storage private endpoints are deployed in their respective VNets, there are some additional steps that need to be performed:
   a.The VNets should be [linked](https://docs.microsoft.com/en-us/azure/dns/private-dns-virtual-network-links) with the private DNS zone, as shown below (databricks-vnetpl and spkevnet-storage-pl):
