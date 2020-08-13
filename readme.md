@@ -16,7 +16,7 @@ This document provides guidance and approaches to securing access and connectivi
 
 [Introduction](#Introduction)
 
-[Securing connectivity to ADLS](#Secure-access-to-storage) 
+[Securing connectivity to ADLS](#securing-connectivity-to-ADLS) 
 
 [Pattern 1 - Access via Service Principal](#Pattern-1---Access-via-Service-Principal)
 
