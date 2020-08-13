@@ -4,7 +4,7 @@
 
 This document provides guidance and approaches to securing access and connectivity to data in Azure Data Lake Storage from Databricks.
 
-**Versions:**
+**Versions: **
 
 | **Name** | **Title** | **Notes** | **Date** |
 | --- | --- | --- | --- |
