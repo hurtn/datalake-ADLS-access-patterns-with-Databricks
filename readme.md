@@ -66,7 +66,7 @@ The following steps will enable Azure Databricks to connect privately and secure
 2. Create a [private storage account](https://docs.microsoft.com/en-us/azure/private-link/create-private-endpoint-storage-portal#create-your-private-endpoint) with a private endpoint and deploy it into the different VNet (i.e. create a new VNet named spokevnet-storage-pl beforehand)
 3. Ensure the [private endpoint is integrated with a private DNS zone](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-dns) to host the privatelink DNS zone of the respective service, in this case dfs.core.windows.net. When creating the Private Endpoint, there is an option to integrate it with Private DNS as shown below:
 
-  ![Private DNS Integration](media/PrivateDNSIntegration.png)
+  ![Private Endpoint](media/privateendpoint.png)
   
 4. When ADB and Storage private endpoints are deployed in their respective VNets, there are some additional steps that need to be performed:
   a.The VNets should be [linked](https://docs.microsoft.com/en-us/azure/dns/private-dns-virtual-network-links) with the private DNS zone, as shown below (databricks-vnetpl and spkevnet-storage-pl):
