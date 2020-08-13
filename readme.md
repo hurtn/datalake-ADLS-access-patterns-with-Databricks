@@ -66,30 +66,30 @@ The following steps will enable Azure Databricks to connect privately and secure
 2. Create a [private storage account](https://docs.microsoft.com/en-us/azure/private-link/create-private-endpoint-storage-portal#create-your-private-endpoint) with a private endpoint and deploy it into the different VNet (i.e. create a new VNet named spokevnet-storage-pl beforehand)
 3. Ensure the [private endpoint is integrated with a private DNS zone](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-dns) to host the privatelink DNS zone of the respective service, in this case dfs.core.windows.net. When creating the Private Endpoint, there is an option to integrate it with Private DNS as shown below:
 
-  ![Private Endpoint](media/PrivateEndpoint2.png)
+  ![Private Endpoint](media/privateendpoint.png)
   
 4. When ADB and Storage private endpoints are deployed in their respective VNets, there are some additional steps that need to be performed:
   a.The VNets should be [linked](https://docs.microsoft.com/en-us/azure/dns/private-dns-virtual-network-links) with the private DNS zone, as shown below (databricks-vnetpl and spkevnet-storage-pl):
 
-    ![Vnet Linked](media/vnetlinked)
+   ![Vnet Linked](media/vnetlinked.png)
 
-    ![Network Flow](media/NetworkFlow.png)
+   ![Network Flow](media/DNSFlow.png)
 
   b. Also make sure both ADB and storage endpoint VNETs are [peered](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-peering-overview):
   
-    ![VNet Peering](media/VNetPeering.png)
+   ![VNet Peering](media/VNetPeering.png)
     
   c. Make sure the storage firewall is enabled. As an optional step you can also add the ADB VNet (databricks-vnet) to communicate with this storage account. When you enable this, storage endpoints will also be enabled on the ADB Vnet (databricks-vnet). 
   
-      ![VNet Peering](media/Firewall2.tif)
+   ![VNet Peering](media/firewall.png)
   
   5. In an ADB notebook you can double check if the FQDN of the storage is now resolving to private IP:
   
-    ![ADB Notebook](media/notebook2.tif)
+   ![ADB Notebook](media/ADBNotebook.png)
   
   6. A mount can be created as normal using the same FQDN and it will connect privately to ADLS using private endpoints.
   
-      ![ADB Mount](media/ADBMount.tif)
+   ![ADB Mount](media/ADBMount.png)
   
     Note: You can deploy the private endpoint for storage within the same VNet where ADB is injected but it should be a different subnet i.e. it must not be deployed in the ADB private or public subnets.
   
