@@ -72,7 +72,7 @@ The following steps will enable Azure Databricks to connect privately and secure
 
   a.The VNets should be [linked](https://docs.microsoft.com/en-us/azure/dns/private-dns-virtual-network-links) with the private DNS zone, as shown below (databricks-vnetpl and spkevnet-storage-pl):
 
-   ![Vnet Linked](media/vnetlinked.png)
+   ![Vnet Linked](media/vnetlinked3.png)
 
   b. Also make sure both ADB and storage endpoint VNETs are [peered](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-peering-overview):
   
