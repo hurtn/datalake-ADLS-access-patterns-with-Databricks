@@ -91,7 +91,7 @@ The following steps will enable Azure Databricks to connect privately and secure
   
    ![ADB Mount](media/ADBMount.png)
   
-    Note: You can deploy the private endpoint for storage within the same VNet where ADB is injected but it should be a different subnet i.e. it must not be deployed in the ADB private or public subnets.
+   Note: You can deploy the private endpoint for storage within the same VNet where ADB is injected but it should be a different subnet i.e. it must not be deployed in the ADB private or public subnets.
   
 There are [further steps](https://databricks.com/blog/2020/03/27/data-exfiltration-protection-with-azure-databricks.html) one can take to harden the Databricks control plane using an Azure Firewall if required.
 
