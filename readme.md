@@ -370,10 +370,10 @@ spark.conf.set("fs.azure.account.auth.type", "OAuth")
 spark.conf.set("fs.azure.account.oauth.provider.type", "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider")
 spark.conf.set("fs.azure.account.oauth2.client.id", "enter-your-service-principal-application-id-here")
 spark.conf.set("fs.azure.account.oauth2.client.secret", dbutils.secrets.get(scope = "secret-scope-name", key = "secret-name"))
-spark.conf.set("fs.azure.account.oauth2.client.endpoint", "https://login.microsoftonline.com//enter-your-tenant-id-here/oauth2/token")
+spark.conf.set("fs.azure.account.oauth2.client.endpoint", "https://login.microsoftonline.com/enter-your-tenant-id-here/oauth2/token")
 
 # read data in delta format
-readdf=spark.read.format("delta").load(abfs://file-system-name@storage-account-name.dfs.core.windows.net/path-to-data")
+readdf=spark.read.format("delta").load("abfss://file-system-name@storage-account-name.dfs.core.windows.net/path-to-data")
 ```
 This pattern works well where different permission groups (such as
 analysts and engineers) are required but one does not wish to take on
