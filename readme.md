@@ -4,7 +4,7 @@
 
 This document provides guidance and approaches to securing access and connectivity to data in Azure Data Lake Storage from Databricks.
 
-**Versions: **
+**Versions:**
 
 | **Name** | **Title** | **Notes** | **Date** |
 | --- | --- | --- | --- |
@@ -39,12 +39,12 @@ This document provides guidance and approaches to securing access and connectivi
 
 There are a number of considerations when configuring access to Azure Data Lake Storage gen2 (ADLS) from Azure Databricks (ADB). How will Databricks users connect to the lake securely, and how does one configure access control based on identity? This article aims to provide an overview of [network security](https://docs.microsoft.com/en-us/azure/security/fundamentals/network-best-practices) between these two services as well as in-depth look at six [access control](https://docs.microsoft.com/en-us/azure/security/fundamentals/identity-management-best-practices) patterns, the advantages and disadvantages of each, and the scenarios in which they would be most appropriate. ADLS in the context of this article can be considered a v2 storage account with Hierarchical Namespace (HNS) enabled.
 
-ADLS offers more granular security than RBAC through the use of access control lists (ACLs) which can be applied at folder or file level.  As per [best practice](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-best-practices#use-security-groups-versus-individual-users) these should be assigned to AAD groups rather than individual users or service principals. Additionally, nesting groups(groups within groups) can offer even more agility and flexibility as permissions evolve. There are two main reasons for this; i.) changing ACLs can take time to propagate if there are 1000s of files, and ii.) there is a limit of 32 ACLs entries per file or folder. Understanding access control using RBAC and ACLs is outside the scope of this document but is covered [here](https://github.com/hurtn/datalake-on-ADLS/blob/master/Understanding%20access%20control%20and%20data%20lake%20configurations%20in%20ADLS%20Gen2.md)   
+ADLS offers more granular security than RBAC through the use of access control lists (ACLs) which can be applied at folder or file level.  As per [best practice](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-best-practices#use-security-groups-versus-individual-users) these should be assigned to AAD groups rather than individual users or service principals. Additionally, nesting groups(groups within groups) can offer even more agility and flexibility as permissions evolve. There are two main reasons for this: i.) changing ACLs can take time to propagate if there are 1000s of files, and ii.) there is a limit of 32 ACLs entries per file or folder. Understanding access control using RBAC and ACLs is outside the scope of this document but is covered [here](https://github.com/hurtn/datalake-on-ADLS/blob/master/Understanding%20access%20control%20and%20data%20lake%20configurations%20in%20ADLS%20Gen2.md).
 
-By way of a very simple example, a data lake may require two sets of permissions - engineers who run data pipelines and transformations requiring read-write access to a particular set of folders, and analysts who consume [read-only] curated analytics from another. At a minimum, two AAD security groups should be created to represent this division of responsibilities, namely a readers group and a writers group. Additional groups to represent the teams or business units could be nested inside these groups and the individuals added to their respective team group. The required permissions for the readers and writers groups to specific folders could be controlled using ACLs. Please see [the documentation](https://docs.microsoft.com/en-gb/azure/storage/blobs/data-lake-storage-access-control#access-control-lists-on-files-and-directories) for further details. For automated jobs, a service principal which has been added to the appropriate group should be used, instead of an individual user identity. Service principal credentials should be kept extremely secure and referenced only though [secret scopes](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/secrets).
+By way of a very simple example, a data lake may require two sets of permissions - engineers who run data pipelines and transformations requiring read-write access to a particular set of folders, and analysts who consume [read-only] curated analytics from another. At a minimum, two AAD security groups should be created to represent this division of responsibilities, namely a readers group and a writers group. Additional groups to represent the teams or business units could be nested inside these groups and the individuals added to their respective team group. The required permissions for the readers and writers groups to specific folders could be controlled using ACLs. Please see [the documentation](https://docs.microsoft.com/en-gb/azure/storage/blobs/data-lake-storage-access-control#access-control-lists-on-files-and-directories) for further details. For automated jobs, a [service principal](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object) which has been added to the appropriate group should be used, instead of an individual user identity. Service principal credentials should be kept extremely secure and referenced only through [secrets](https://docs.microsoft.com/en-us/azure/databricks/security/secrets/).
 
 ## Securing connectivity to ADLS
-In Azure there are two types of PaaS service – those which are built using dedicated architecture, known as dedicated services, and those which are build using a shared architecture, known as shared services. Dedicated services use a mix of cloud resources (compute, storage, network) allocated from a pool, and are assigned to a dedicated instance of that service for a particular customer. These can be deployed within a customer virtual network, for example, a virtual machine. Shared services use a set of cloud resources which are assigned to more than one instance of a service, utilised by more than one customer, and therefore cannot be deployed within a single customer network e.g. storage. Depending on the type of service, a different [VNet integration pattern](https://github.com/fguerri/AzureVNetIntegrationPatterns) is applied to make it accessible only from clients deployed within Azure VNets and not accessible from the internet.
+In Azure there are two types of PaaS service – those which are built using dedicated architecture, known as dedicated services, and those which are built using a shared architecture, known as shared services. Dedicated services use a mix of cloud resources (compute, storage, network) allocated from a pool, and are assigned to a dedicated instance of that service for a particular customer. These can be deployed within a customer virtual network, for example, a virtual machine. Shared services use a set of cloud resources which are assigned to more than one instance of a service, utilised by more than one customer, and therefore cannot be deployed within a single customer network, e.g., storage. Depending on the type of service, a different [VNet integration pattern](https://github.com/fguerri/AzureVNetIntegrationPatterns) is applied to make it accessible only from clients deployed within Azure VNets and not accessible from the internet.
 Azure Storage / ADLS gen2 is a shared service built using a shared architecture, and so to access it securely from Azure Databricks there are two options available. This Databricks [blog](https://databricks.com/blog/2020/02/28/securely-accessing-azure-data-sources-from-azure-databricks.html#:~:text=%20Securely%20Accessing%20Azure%20Data%20Sources%20from%20Azure,available%20to%20access%20Azure%20data%20services...%20More%20) summarises the following approaches:
 
 1. [Service Endpoints](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview#key-benefits)
@@ -61,36 +61,36 @@ The setup for storage service endpoints are less complicated than compared to Pr
 
 ### Connecting securely to ADLS from ADB
 
-The following steps will enable Azure Databricks to connect privately and securely with Azure Storage via private endpoint using a [hub and spoke](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke) configuration i.e. ADB and private endpoints are in their respective spoke VNETs:
+The following steps will enable Azure Databricks to connect privately and securely with Azure Storage via private endpoint using a [hub and spoke](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke) configuration, i.e., ADB and private endpoints are in their respective spoke VNETs:
 1. Deploy Azure Databricks into a VNet using the [Portal](https://docs.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/vnet-inject#--create-the-azure-databricks-workspace-in-the-azure-portal) or [ARM template](https://azure.microsoft.com/en-us/resources/templates/101-databricks-all-in-one-template-for-vnet-injection/).
-2. Create a [private storage account](https://docs.microsoft.com/en-us/azure/private-link/create-private-endpoint-storage-portal#create-your-private-endpoint) with a private endpoint and deploy it into the different VNet (i.e. create a new VNet named spokevnet-storage-pl beforehand)
-3. Ensure the [private endpoint is integrated with a private DNS zone](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-dns) to host the privatelink DNS zone of the respective service, in this case dfs.core.windows.net. When creating the Private Endpoint, there is an option to integrate it with Private DNS as shown below:
+1. Create a [private storage account](https://docs.microsoft.com/en-us/azure/private-link/create-private-endpoint-storage-portal#create-your-private-endpoint) with a private endpoint and deploy it into the different VNet (i.e., create a new VNet named `spokevnet-storage-pl` beforehand)
+1. Ensure the [private endpoint is integrated with a private DNS zone](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-dns) to host the privatelink DNS zone of the respective service, in this case `dfs.core.windows.net`. When creating the Private Endpoint, there is an option to integrate it with Private DNS as shown below:
 
-  ![Private Endpoint](media/privateendpoint.png)
+   ![Private Endpoint](media/privateendpoint.png)
   
-4. When ADB and Storage private endpoints are deployed in their respective VNets, there are some additional steps that need to be performed:
+1. When ADB and Storage private endpoints are deployed in their respective VNets, there are some additional steps that need to be performed:
 
-  a.The VNets should be [linked](https://docs.microsoft.com/en-us/azure/dns/private-dns-virtual-network-links) with the private DNS zone, as shown below (databricks-vnetpl and spkevnet-storage-pl):
+   a. The VNets should be [linked](https://docs.microsoft.com/en-us/azure/dns/private-dns-virtual-network-links) with the private DNS zone, as shown below (`databricks-vnetpl` and `spkevnet-storage-pl`):
 
-   ![Vnet Linked](media/vnetlinked3.png)
+      ![Vnet Linked](media/vnetlinked3.png)
 
-  b. Also make sure both ADB and storage endpoint VNETs are [peered](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-peering-overview):
+   b. Also make sure both ADB and storage endpoint VNETs are [peered](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-peering-overview):
   
-   ![VNet Peering](media/VNetPeering.png)
+      ![VNet Peering](media/VNetPeering.png)
    
-   The network configuration should now be as follows:
+      The network configuration should now be as follows:
     
-   ![Network Flow](media/DNSFlow.png)
+      ![Network Flow](media/DNSFlow.png)
        
-   c. Make sure the storage firewall is enabled. As an optional step you can also add the ADB VNet (databricks-vnet) to communicate with this storage account. When you enable this, storage endpoints will also be enabled on the ADB Vnet (databricks-vnet). 
+   c. Make sure the storage firewall is enabled. As an optional step you can also add the ADB VNet (`databricks-vnet`) to communicate with this storage account. When you enable this, storage endpoints will also be enabled on the ADB Vnet (`databricks-vnet`). 
   
-   ![VNet Peering](media/firewall.png)
+      ![VNet Peering](media/firewall.png)
   
-  5. In an ADB notebook you can double check if the FQDN of the storage is now resolving to private IP:
+1. In an ADB notebook you can double check if the FQDN of the storage is now resolving to private IP:
   
    ![ADB Notebook](media/ADBNotebook.png)
   
-  6. A mount can be created as normal using the same FQDN and it will connect privately to ADLS using private endpoints.
+1. A mount can be created as normal using the same FQDN and it will connect privately to ADLS using private endpoints.
   
    ![ADB Mount](media/ADBMount.png)
 
@@ -100,7 +100,7 @@ The following steps will enable Azure Databricks to connect privately and secure
   http_url: Proxy FQDN, https_url: Proxy FQDN
   ```
 
-    Note: You can deploy the private endpoint for storage within the same VNet where ADB is injected but it should be a different subnet i.e. it must not be deployed in the ADB private or public subnets.
+    Note: You can deploy the private endpoint for storage within the same VNet where ADB is injected but it should be a different subnet, i.e., it must not be deployed in the ADB private or public subnets.
   
 There are [further steps](https://databricks.com/blog/2020/03/27/data-exfiltration-protection-with-azure-databricks.html) one can take to harden the Databricks control plane using an Azure Firewall if required.
 
@@ -112,25 +112,27 @@ To provide a group of users access to a particular folder (and it's
 contents) in ADLS, the simplest mechanism is to create a [mount point
 using a service
 principal](https://docs.microsoft.com/en-gb/azure/databricks/data/data-sources/azure/azure-datalake-gen2?toc=https%3A%2F%2Fdocs.microsoft.com%2Fen-gb%2Fazure%2Fazure-databricks%2FTOC.json&bc=https%3A%2F%2Fdocs.microsoft.com%2Fen-gb%2Fazure%2Fbread%2Ftoc.json#--mount-an-azure-data-lake-storage-gen2-account-using-a-service-principal-and-oauth-20)
-at the desired folder depth. The mount point (/mnt/\<mount\_name\>) is
+at the desired folder depth. The mount point (`/mnt/<mount_name>`) is
 created once-off per workspace but **is accessible to any user on any
 cluster in that workspace**. In order to secure access to different
 groups of users with different permissions, one will need more than just
 a single one mount point in one workspace. One of the patterns described
 below should be followed.
 
-*Note access keys are not an option on ADLS whereas they can be used for
-normal blob containers without HNS enabled.*
+*Note access keys couldn't be used to mount the ADLS, like they can be used for mounting of
+normal blob containers without HNS enabled.  But access keys [could be used for direct access to data via APIs](https://docs.microsoft.com/en-us/azure/databricks/data/data-sources/azure/azure-datalake-gen2#--access-directly-using-the-storage-account-access-key). Since DBR 7.5, direct access to data is also [possible via shared access signatures](https://docs.microsoft.com/en-us/azure/databricks/data/data-sources/azure/azure-datalake-gen2#access-directly-using-sas-token-provider) as experimental feature.*
 
 Below is sample code to authenticate via a SP using OAuth2 and create a
-mount point in Scala.
+mount point in Python:
 
-```scala
-configs = {"fs.azure.account.auth.type": "OAuth",
-           "fs.azure.account.oauth.provider.type": "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider",
-           "fs.azure.account.oauth2.client.id": "enter-your-service-principal-application-id-here",
-           "fs.azure.account.oauth2.client.secret": dbutils.secrets.get(scope = "enter-your-key-vault-secret-scope-name-here", key = "enter-the-secret"),
-           "fs.azure.account.oauth2.client.endpoint": "https://login.microsoftonline.com/enter-your-tenant-id-here/oauth2/token"}
+```python
+configs = {
+  "fs.azure.account.auth.type": "OAuth",
+  "fs.azure.account.oauth.provider.type": "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider",
+  "fs.azure.account.oauth2.client.id": "enter-your-service-principal-application-id-here",
+  "fs.azure.account.oauth2.client.secret": dbutils.secrets.get(scope = "enter-your-key-vault-secret-scope-name-here", key = "enter-the-secret"),
+  "fs.azure.account.oauth2.client.endpoint": "https://login.microsoftonline.com/enter-your-tenant-id-here/oauth2/token"
+}
 
 dbutils.fs.mount(
   source = "abfss://file-system-name@storage-account-name.dfs.core.windows.net/folder-path-here",
@@ -138,7 +140,7 @@ dbutils.fs.mount(
 ```
 The creation of the mount point and listing of current mount points in
 the workspace can be done via the
-[CLI](https://docs.microsoft.com/en-gb/azure/databricks/dev-tools/cli/dbfs-cli?toc=https%3A%2F%2Fdocs.microsoft.com%2Fen-gb%2Fazure%2Fazure-databricks%2FTOC.json&bc=https%3A%2F%2Fdocs.microsoft.com%2Fen-gb%2Fazure%2Fbread%2Ftoc.json)
+[CLI](https://docs.microsoft.com/en-gb/azure/databricks/dev-tools/cli/dbfs-cli)
 
 ```cli
 \>databricks configure --- token
@@ -168,13 +170,18 @@ the code snippet below.
 To access data directly using service principal, authorisation code must
 be executed in the same session prior to reading/writing the data for
 example:
-```scala
+
+```python
 # authenticate using a service principal and OAuth 2.0
 spark.conf.set("fs.azure.account.auth.type", "OAuth")
-spark.conf.set("fs.azure.account.oauth.provider.type", "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider")
-spark.conf.set("fs.azure.account.oauth2.client.id", "enter-your-service-principal-application-id-here")
-spark.conf.set("fs.azure.account.oauth2.client.secret", dbutils.secrets.get(scope = "secret-scope-name", key = "secret-name"))
-spark.conf.set("fs.azure.account.oauth2.client.endpoint", "https://login.microsoftonline.com//enter-your-tenant-id-here/oauth2/token")
+spark.conf.set("fs.azure.account.oauth.provider.type",
+  "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider")
+spark.conf.set("fs.azure.account.oauth2.client.id",
+  "enter-your-service-principal-application-id-here")
+spark.conf.set("fs.azure.account.oauth2.client.secret", 
+  dbutils.secrets.get(scope = "secret-scope-name", key = "secret-name"))
+spark.conf.set("fs.azure.account.oauth2.client.endpoint",
+  "https://login.microsoftonline.com//enter-your-tenant-id-here/oauth2/token")
 
 # read data in delta format
 readdf=spark.read.format("delta").load(abfs://file-system-name@storage-account-name.dfs.core.windows.net/path-to-data")
@@ -228,8 +235,11 @@ options.
 To [mount an ADLS filesystem or folder with AAD passthrough
 enabled](https://docs.microsoft.com/en-us/azure/databricks/data/data-sources/azure/adls-passthrough#azure-data-lake-storage-gen2-1)
 the following Scala may be used:
+
 ```scala
-val configs = Map("fs.azure.account.auth.type" -> "CustomAccessToken",  "fs.azure.account.custom.token.provider.class" -> spark.conf.get("spark.databricks.passthrough.adls.gen2.tokenProviderClassName"))
+val configs = Map(
+  "fs.azure.account.auth.type" -> "CustomAccessToken",
+  "fs.azure.account.custom.token.provider.class" -> spark.conf.get("spark.databricks.passthrough.adls.gen2.tokenProviderClassName"))
 
 // Optionally, you can add <directory-name> to the source URI of your mount point.
 dbutils.fs.mount(
@@ -237,15 +247,16 @@ dbutils.fs.mount(
   mountPoint = "/mnt/mount-name",
   extraConfigs = configs)
 ```
+
 Any user reading or writing via the mount point will have their
 credentials evaluated. Alternatively, to access data directly without a
 mount point simply use the abfs path on a cluster with AAD Passthrough
 enabled, for example:
-```scala
+```python
 # read data in delta format using direct path
-readdf = spark.read
-.format("<file format>")
-.load("abfss://<filesys>@<storageacc>.dfs.core.windows.net/<path>")
+readdf = spark.read\
+  .format("<file format>")\
+  .load("abfss://<filesys>@<storageacc>.dfs.core.windows.net/<path>")
 ```
 Originally this functionality was only available using [high
 concurrency
@@ -269,11 +280,10 @@ credentials that are used.
 *Note: Access can still be either direct path or mount point*
 
 There are some [[further
-considerations]{.underline}](https://docs.microsoft.com/en-gb/azure/databricks/data/data-sources/azure/adls-passthrough#known-limitations)
+considerations]](https://docs.microsoft.com/en-gb/azure/databricks/data/data-sources/azure/adls-passthrough#known-limitations)
 to note at the time of writing:
 
--   The [[minimum runtime
-    versions]{.underline}](https://docs.microsoft.com/en-gb/azure/databricks/data/data-sources/azure/adls-passthrough#supported-features)
+-   The [[minimum runtime versions]](https://docs.microsoft.com/en-gb/azure/databricks/data/data-sources/azure/adls-passthrough#supported-features)
     as well as which PySpark ML APIs which are not supported, and
     associated supported features
 
@@ -303,7 +313,8 @@ This pattern will allow you to use multiple clusters in the same
 workspace, and "attach" a set of permissions according to the service
 principal set in the [cluster
 config](https://docs.microsoft.com/en-gb/azure/databricks/clusters/configure?toc=https%3A%2F%2Fdocs.microsoft.com%2Fen-gb%2Fazure%2Fazure-databricks%2FTOC.json&bc=https%3A%2F%2Fdocs.microsoft.com%2Fen-gb%2Fazure%2Fbread%2Ftoc.json):
-```Scala
+
+```
 fs.azure.account.auth.type OAuth
 fs.azure.account.oauth.provider.type org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider
 fs.azure.account.oauth2.client.id <service-principal-application-id>
@@ -316,7 +327,7 @@ as it is different from the usual dbutils syntax*
 
 The benefit of this approach is that the scope and secret names are not
 exposed to end-users and they do not require read access to the secret
-scope however the creator of the cluster will.
+scope however the creator of the cluster will.  But please note that this secret will be available to all users of cluster.
 
 Users should use the direct access method, via ABFS, and mount points
 should be forbidden, unless of course there is a global folder everyone
@@ -336,7 +347,7 @@ more about this in the next pattern. The analysts however may need read
 access to the target folder and nothing else.
 
 The disadvantage of this approach is dedicated clusters for each
-permission group, i.e. no sharing of clusters across permission groups.
+permission group, i.e., no sharing of clusters across permission groups.
 In other words, each service principal, and therefore each cluster,
 should have sufficient permissions in the lake to run the desired
 workload on that cluster. The reason for this is that a cluster can only
@@ -364,13 +375,17 @@ approach will not work when using odbc/jdbc connections. Also note, that
 will have a significant influence the design based on Spark's lazy
 evaluation, as described later. Below is sample OAuth code, which is
 very similar to the code used in pattern 1 above:
-```Scala
+```python
 # authenticate using a service principal and OAuth 2.0
 spark.conf.set("fs.azure.account.auth.type", "OAuth")
-spark.conf.set("fs.azure.account.oauth.provider.type", "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider")
-spark.conf.set("fs.azure.account.oauth2.client.id", "enter-your-service-principal-application-id-here")
-spark.conf.set("fs.azure.account.oauth2.client.secret", dbutils.secrets.get(scope = "secret-scope-name", key = "secret-name"))
-spark.conf.set("fs.azure.account.oauth2.client.endpoint", "https://login.microsoftonline.com//enter-your-tenant-id-here/oauth2/token")
+spark.conf.set("fs.azure.account.oauth.provider.type", 
+    "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider")
+spark.conf.set("fs.azure.account.oauth2.client.id", 
+    "enter-your-service-principal-application-id-here")
+spark.conf.set("fs.azure.account.oauth2.client.secret", 
+    dbutils.secrets.get(scope = "secret-scope-name", key = "secret-name"))
+spark.conf.set("fs.azure.account.oauth2.client.endpoint", 
+   "https://login.microsoftonline.com//enter-your-tenant-id-here/oauth2/token")
 
 # read data in delta format
 readdf=spark.read.format("delta").load(abfs://file-system-name@storage-account-name.dfs.core.windows.net/path-to-data")
@@ -475,7 +490,7 @@ write is triggered.
 
 *This means a single service principal will need to encapsulate the
 permissions of a single pipeline execution rather than a single service
-principal per data asset.
+principal per data asset.*
 
 ## Pattern 6 - Databricks Table Access Control
 
