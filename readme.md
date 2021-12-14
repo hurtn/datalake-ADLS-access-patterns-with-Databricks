@@ -10,6 +10,7 @@ This document provides guidance and approaches to securing access and connectivi
 | --- | --- | --- | --- |
 | Nicholas Hurt | Microsoft Cloud Solution Architect – Data &amp; AI | Original | 20 Jan 2020 |
 | Nicholas Hurt, Wasim Ahmad | Microsoft Cloud Solution Architect – Data &amp; AI | Added section on securely accessing ADLS | 03 Aug 2020 |
+| Anil Sener | Microsoft Cloud Solution Architect – Data &amp; AI | Added tutorials for pattern 3, 4 and 6. | 01 December 2021 |
 |   |   |   |   |
 
 # Contents
@@ -299,6 +300,8 @@ requirement to enable more than one Scala or R developer to work on a
 cluster at the same time, then you may need to consider one of the other
 patterns below.
 
+Please follow the [tutorial for Pattern 3](tutorials/pattern_3_AAD_Credential_passthrough/Pattern3.md).
+
 ## Pattern 4 - Cluster scoped Service principal
 
 In this pattern, each cluster is "mapped" to a unique service principal.
@@ -359,6 +362,8 @@ Depending on the number of permission groups required, this pattern
 could result in a proliferation of clusters. The next pattern may
 overcome this challenge but will require each user to execute
 authentication code at run time.
+
+Please follow the [tutorial for Pattern 4](tutorials/pattern_4_Cluster_scoped_Service_Principal/Pattern4.md).
 
 ## Pattern 5 - Session scoped Service principal
 
@@ -507,6 +512,8 @@ which ensures the only method of data access for users is via the
 pre-configured tables or views. This works well for analytical (BI)
 tools accessing tables/views via odbc but limits users in their ability
 to access files directly and does not support R and Scala.
+
+Please follow the [tutorial for Pattern 6](tutorials/pattern_6_Databricks_Table_Access_Control/Pattern6.md).
 
 ## Conclusion
 
