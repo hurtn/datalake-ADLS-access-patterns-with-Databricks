@@ -127,14 +127,14 @@ fs.azure.account.oauth2.client.endpoint https://login.microsoftonline.com/<Direc
   <img width="450" src="media/pattern_4_step_5_a.png" />
 </p>
 
-14. Navigate to the premium Azure Databricks <b>Workspace > Overview</b> on Azure Portal and click <b>Launch Workspace</b> button, choose and <b>TestUser1</b> user to login. When Azure Databricks Workspace is displayed, navigate to <b>Workspace</b>, then upload [pattern4-Cluster-scoped-principals-iot_devices.ipynb](notebooks\testuser1\pattern4-Cluster-scoped-principals-iot_devices.ipynb) notebook to the Databricks Workspace and open the notebook, attach & start the cluster created in step 12 and then run all cells: 
+14. Navigate to the premium Azure Databricks <b>Workspace > Overview</b> on Azure Portal and click <b>Launch Workspace</b> button, choose and <b>TestUser1</b> user to login. When Azure Databricks Workspace is displayed, navigate to <b>Workspace</b>, then upload [pattern4-Cluster-scoped-principals-iot_devices.ipynb](notebooks/testuser1/pattern4-Cluster-scoped-principals-iot_devices.ipynb) notebook to the Databricks Workspace and open the notebook, attach & start the cluster created in step 12 and then run all cells: 
 <p align="center">
   <img width="850" src="media/pattern_4_step_6.png" />
 </p>
 
 <i>RESULT: Files unders /iot_devices folder are readable meanwhile /loans raise an exception due to lack of privileges to access these files on ADLS Gen2. These permissions are limited thanks to the privileges of app registration service principal created for iot_devices on ADLS Gen2 ACLs.</i> 
 
-15. Navigate to the premium Azure Databricks <b>Workspace > Overview</b> on Azure Portal and click <b>Launch Workspace</b> button, choose and <b>TestUser2</b> user to login. When Azure Databricks Workspace is displayed, navigate to <b>Workspace</b>, then upload [pattern4-Cluster-scoped-principals-loans.ipynb](notebooks\testuser2\pattern4-Cluster-scoped-principals-loans.ipynb) notebook to the Databricks Workspace and open the notebook, attach & start the cluster created in step 13 and then run all cells: 
+15. Navigate to the premium Azure Databricks <b>Workspace > Overview</b> on Azure Portal and click <b>Launch Workspace</b> button, choose and <b>TestUser2</b> user to login. When Azure Databricks Workspace is displayed, navigate to <b>Workspace</b>, then upload [pattern4-Cluster-scoped-principals-loans.ipynb](notebooks/testuser2/pattern4-Cluster-scoped-principals-loans.ipynb) notebook to the Databricks Workspace and open the notebook, attach & start the cluster created in step 13 and then run all cells: 
 <p align="center">
   <img width="850" src="media/pattern_4_step_7.png" />
 </p>
