@@ -136,7 +136,7 @@ ON TABLE testdb.loans
 </p>
 
 
-10. Navigate to the premium Azure Databricks <b>Workspace > Overview</b> on Azure Portal and click Launch Workspace button, choose and <b>TestUser1</b> user to login. When Azure Databricks Workspace is displayed, navigate to <b>Workspace</b>, then upload [pattern6-table-access-control.ipynb](notebooks\testuser1\pattern6-table-access-control.ipynb) notebook to the Databricks Workspace and open the notebook, attach & start the cluster created in step 1 and then run all cells: 
+10. Navigate to the premium Azure Databricks <b>Workspace > Overview</b> on Azure Portal and click Launch Workspace button, choose and <b>TestUser1</b> user to login. When Azure Databricks Workspace is displayed, navigate to <b>Workspace</b>, then upload [pattern6-table-access-control.ipynb](notebooks/testuser1/pattern6-table-access-control.ipynb) notebook to the Databricks Workspace and open the notebook, attach & start the cluster created in step 1 and then run all cells: 
 <p align="center">
   <img width="850" src="media/pattern_6_step_9.png" />
 </p>
@@ -148,7 +148,7 @@ ON TABLE testdb.loans
 <i>RESULT: Neither of the file paths are directly accessible anymore. IotDevicesGroup Databricks Group users can only access to `testdb.iot_devices` table, the user received an explicity privilidge exception for `testdb.loans` table. These permissions are limited thanks to the privileges granted & denied by Databricks Table Control.</i> 
 
 
-11. Navigate to the premium Azure Databricks <b>Workspace > Overview</b> on Azure Portal and click Launch Workspace button, choose and <b>TestUser2</b> user to login. When Azure Databricks Workspace is displayed, navigate to <b>Workspace</b>, then upload [pattern6-table-access-control.ipynb](notebooks\testuser2\pattern6-table-access-control.ipynb) notebook to the Databricks Workspace and open the notebook, attach & start the cluster created in step 1 and then run all cells: 
+11. Navigate to the premium Azure Databricks <b>Workspace > Overview</b> on Azure Portal and click Launch Workspace button, choose and <b>TestUser2</b> user to login. When Azure Databricks Workspace is displayed, navigate to <b>Workspace</b>, then upload [pattern6-table-access-control.ipynb](notebooks/testuser2/pattern6-table-access-control.ipynb) notebook to the Databricks Workspace and open the notebook, attach & start the cluster created in step 1 and then run all cells: 
 <p align="center">
   <img width="850" src="media/pattern_6_step_10.png" />
 </p>
