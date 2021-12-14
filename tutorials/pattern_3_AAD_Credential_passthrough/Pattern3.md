@@ -73,14 +73,14 @@ Install [Databricks Client](https://docs.databricks.com/dev-tools/cli/index.html
   <img width="450" src="media/pattern_3_step_7_a.png" />
 </p>
 
-8. Navigate to the premium Azure Databricks <b>Workspace > Overview</b> on Azure Portal and click <b>Launch Workspace</b> button, choose and <b>TestUser1</b> user to login. When Azure Databricks Workspace is displayed, navigate to <b>Workspace</b>, then upload [pattern3-AADPassthrough-group1.ipynb](notebooks\testuser1\pattern3-AADPassthrough-group1.ipynb) notebook to the Databricks Workspace and open the notebook, attach & start the cluster created in step 6 and then run all cells: 
+8. Navigate to the premium Azure Databricks <b>Workspace > Overview</b> on Azure Portal and click <b>Launch Workspace</b> button, choose and <b>TestUser1</b> user to login. When Azure Databricks Workspace is displayed, navigate to <b>Workspace</b>, then upload [pattern3-AADPassthrough-group1.ipynb](notebooks/testuser1/pattern3-AADPassthrough-group1.ipynb) notebook to the Databricks Workspace and open the notebook, attach & start the cluster created in step 6 and then run all cells: 
 <p align="center">
   <img width="850" src="media/pattern_3_step_8.png" />
 </p>
 
 <i>RESULT: Files unders /iot_devices folder are readable meanwhile /loans raise an exception due to lack of privileges to access these files on ADLS Gen2. These permissions are limited thanks to the privileges of group1 on ADLS Gen2 ACLs.</i> 
 
-9. Navigate to the premium Azure Databricks <b>Workspace > Overview</b>on Azure Portal and click <b>Launch Workspace</b> button, choose and <b>TestUser2</b> user to login. When Azure Databricks Workspace is displayed, navigate to <b>Workspace</b>, then upload [pattern3-AADPassthrough-group2.ipynb](notebooks\testuser2\pattern3-AADPassthrough-group2.ipynb) notebook to the Databricks Workspace and open the notebook, attach & start the cluster created in step 7 and then run all cells:  
+9. Navigate to the premium Azure Databricks <b>Workspace > Overview</b>on Azure Portal and click <b>Launch Workspace</b> button, choose and <b>TestUser2</b> user to login. When Azure Databricks Workspace is displayed, navigate to <b>Workspace</b>, then upload [pattern3-AADPassthrough-group2.ipynb](notebooks/testuser2/pattern3-AADPassthrough-group2.ipynb) notebook to the Databricks Workspace and open the notebook, attach & start the cluster created in step 7 and then run all cells:  
 <p align="center">
   <img width="850" src="media/pattern_3_step_9.png" />
 </p>
