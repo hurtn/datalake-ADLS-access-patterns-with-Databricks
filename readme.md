@@ -10,6 +10,7 @@ This document provides guidance and approaches to securing access and connectivi
 | --- | --- | --- | --- |
 | Nicholas Hurt | Microsoft Cloud Solution Architect – Data &amp; AI | Original | 20 Jan 2020 |
 | Nicholas Hurt, Wasim Ahmad | Microsoft Cloud Solution Architect – Data &amp; AI | Added section on securely accessing ADLS | 03 Aug 2020 |
+| Anil Sener | Microsoft Cloud Solution Architect – Data &amp; AI | Added tutorials for pattern 3, 4 and 6. | 01 December 2021 |
 |   |   |   |   |
 
 # Contents
