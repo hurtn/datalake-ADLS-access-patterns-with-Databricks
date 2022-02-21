@@ -138,6 +138,7 @@ configs = {
 dbutils.fs.mount(
   source = "abfss://file-system-name@storage-account-name.dfs.core.windows.net/folder-path-here",
   mount_point = "/mnt/mount-name",
+  extra_configs = configs)
 ```
 The creation of the mount point and listing of current mount points in
 the workspace can be done via the
